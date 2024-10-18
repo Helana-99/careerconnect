@@ -1,0 +1,102 @@
+Register.css
+
+/* Ensure the body takes full height and centers content */
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto; 
+}
+
+/* Make the container wider */
+.register-container {
+    min-height: 700px;
+    min-width: 1400px;  
+    width: 100%;
+    padding: 0px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    justify-content: center;
+}
+
+/* Header styling */
+header {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative;
+}
+
+header::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    transform: translateX(-50%);
+    height: 3px;
+    width: 27px;
+    border-radius: 8px;
+}
+
+/* Card container */
+.card-container {
+    
+    display: flex;
+    justify-content: space-between;
+    margin: 5% auto;
+
+
+}
+
+/* Card styling */
+.cardd {
+    width: 45%;
+    background-color: #f7f7f7;
+    border-radius: 10px;
+    padding: 100px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+    color: black;
+}
+
+.cardd:hover {
+    transform: translateY(-5px);
+    box-shadow: 0  12px 15px rgba(21, 161, 161, 0.432);
+}
+
+.cardd-content h3 {
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.cardd-content p {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Form toggle buttons */
+.form-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.form-toggle button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    background-color: #a2d2ff;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.form-toggle .active {
+    background-color: #a2d2ff;
+}
+

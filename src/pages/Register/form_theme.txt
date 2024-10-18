@@ -1,0 +1,251 @@
+
+//////////////
+
+https://uiverse.io/akshat-patel28/evil-starfish-15
+
+/////////////
+
+
+
+
+
+import React, { useState } from 'react';
+import './ClientForm.css'; // Import the CSS file
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser, faEnvelope, faLock, faPhone, faCalendarAlt, faFileAlt, faHome, faBriefcase, faImage } from '@fortawesome/free-solid-svg-icons';
+
+function ClientForm() {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    gender: '',
+    dateOfBirth: '',
+    phoneNumber: '',
+    email: '',
+    password: '',
+    repeatPassword: '',
+    cvFile: null,
+    accountType: '',
+    address: '',
+    specialization: ''
+  });
+
+  const [formErrors, setFormErrors] = useState({});
+
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // Handle file changes
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.files[0] });
+  };
+
+  // Validation logic
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.fullName) errors.fullName = "Full name is required";
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Valid email is required";
+    }
+    if (!formData.phoneNumber || !/^[0-9]+$/.test(formData.phoneNumber)) {
+      errors.phoneNumber = "Valid phone number is required";
+    }
+    if (!formData.profileImage) errors.profileImage = "Profile image is required";
+    if (!formData.dateOfBirth) errors.dateOfBirth = "Date of Birth is required";
+    if (!formData.cvFile) errors.cvFile = "CV is required (PDF only)";
+    if (formData.cvFile && formData.cvFile.type !== 'application/pdf') {
+      errors.cvFile = "CV must be a PDF file";
+    }
+    if (!formData.password || !/^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/.test(formData.password)) {
+      errors.password = "Password must be at least 8 characters, contain 1 capital letter, and 1 special character";
+    }
+    if (formData.password !== formData.repeatPassword) {
+      errors.repeatPassword = "Passwords do not match";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handling form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      console.log("Form submitted successfully!", formData);
+    }
+  };
+  
+  return (
+    <div className="form-container w-50 mt-5 mb-5">
+      <p className="title">Individuals Form</p>
+      <form className="form" onSubmit={handleSubmit}>
+        <div className="input-field">
+          <label>
+            <FontAwesomeIcon icon={faUser} /> Full Name
+          </label>
+          <input
+            type="text"
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleInputChange}
+            className="input"
+            placeholder="Enter full name"
+          />
+          {formErrors.fullName && <p className="error">{formErrors.fullName}</p>}
+        </div>
+
+        <div className="input-field">
+          <label>
+            <FontAwesomeIcon icon={faEnvelope} /> Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            className="input"
+            placeholder="Enter email"
+          />
+          {formErrors.email && <p className="error">{formErrors.email}</p>}
+        </div>
+
+        <div className="input-field">
+          <label>
+            <FontAwesomeIcon icon={faPhone} /> Phone Number
+          </label>
+          <input
+            type="text"
+            name="phoneNumber"
+            value={formData.phoneNumber}
+            onChange={handleInputChange}
+            className="input"
+            placeholder="Enter phone number"
+          />
+          {formErrors.phoneNumber && <p className="error">{formErrors.phoneNumber}</p>}
+        </div>
+
+        <div className="input-field">
+          <label>
+            <FontAwesomeIcon icon={faCalendarAlt} /> Date of Birth
+          </label>
+          <input
+            type="date"
+            name="dateOfBirth"
+            value={formData.dateOfBirth}
+            onChange={handleInputChange}
+            className="input"
+          />
+          {formErrors.dateOfBirth && <p className="error">{formErrors.dateOfBirth}</p>}
+        </div>
+
+        <div className="input-field">
+          <label>
+            <FontAwesomeIcon icon={faLock} /> Password
+          </label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            className="input"
+            placeholder="Enter password"
+          />
+          {formErrors.password && <p className="error">{formErrors.password}</p>}
+        </div>
+
+        <div className="input-field">
+          <label>
+            <FontAwesomeIcon icon={faLock} /> Repeat Password
+          </label>
+          <input
+            type="password"
+            name="repeatPassword"
+            value={formData.repeatPassword}
+            onChange={handleInputChange}
+            className="input"
+            placeholder="Repeat password"
+          />
+          {formErrors.repeatPassword && <p className="error">{formErrors.repeatPassword}</p>}
+        </div>
+
+        <div className="form-btn-container">
+          <button type="submit" className="form-btn">Create Account</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default ClientForm;
+
+
+
+
+
+//////////
+css
+
+.form-container {
+  width: 350px;
+  height: auto;
+  background-color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  border-radius: 10px;
+  padding: 20px 30px;
+  margin: 0 auto;
+}
+
+.title {
+  text-align: center;
+  font-family: "Lucida Sans", "Lucida Grande", Geneva, Verdana, sans-serif;
+  margin: 10px 0 30px 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input {
+  border-radius: 20px;
+  border: 1px solid #c0c0c0;
+  padding: 12px 15px;
+  box-sizing: border-box;
+}
+
+.form-btn-container {
+  text-align: center;
+}
+
+.form-btn {
+  padding: 10px 15px;
+  font-family: "Lucida Sans", "Lucida Grande", Geneva, Verdana, sans-serif;
+  border-radius: 20px;
+  background: teal;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+}
+
+
+
+
+
+

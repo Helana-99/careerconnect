@@ -1,0 +1,89 @@
+.new-project-form {
+  background-color: #f8f9fa; /* Light gray background similar to CompanyForm */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 3% auto;
+  width: 100%;
+}
+
+.form-header h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 28px;
+  font-weight: bold; /* To match the CompanyForm header style */
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: bold;
+  color: #495057;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="date"],
+.form-group input[type="file"],
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  background-color: #ffffff; /* White background for all input fields */
+  border: 1px solid #2c9caf; /* Matching border color as used in CompanyForm */
+  border-radius: 5px;
+}
+
+.form-group input[type="file"] {
+  padding: 8px; /* Adjust padding for file input */
+}
+
+.form-check-label {
+  margin-left: 5px;
+  color: #495057; /* Dark gray for form-check labels for consistency */
+}
+
+.error {
+  color: red;
+  font-size: 14px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #4CAF50; /* Consistent with previous form */
+  color: white;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #45a049;
+}
+/* /////////////////////////////////// */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
