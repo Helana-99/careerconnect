@@ -40,29 +40,51 @@ def project_create(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# @api_view(['GET'])
+# def project_list(request):
+#     # permission_classes = [IsAuthenticated]
+#     if request.method == 'GET':
+#         # Get all projects authored by the current user's company
+#         projects = Project.objects.all()
+#         serializer = ProjectSerializer(projects, many=True)
+#         return Response(serializer.data)
+
+
+# @api_view(['GET'])
+# def project_detail(request, id):
+#     try:
+#         # Retrieve the project by the given ID
+#         project = Project.objects.get(pk=id)
+#         print(project)  # Log the project data for debugging
+#         # Serialize the project object and return the data
+#         serializer = ProjectSerializer(project)
+#         return Response(serializer.data)
+#     except Project.DoesNotExist:
+#         print(f"Project with ID {id} not found")
+#         return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 @api_view(['GET'])
 def project_list(request):
-    # permission_classes = [IsAuthenticated]
     if request.method == 'GET':
-        # Get all projects authored by the current user's company
         projects = Project.objects.all()
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
-
-
 @api_view(['GET'])
-def project_detail(request, id):
+def project_detail(request, username):
     try:
-        # Retrieve the project by the given ID
-        project = Project.objects.get(pk=id)
+        # Retrieve the project by the author's username
+        project = Project.objects.filter(author__username=username)
+        if project.exists():
+            serializer = ProjectSerializer(project, many=True)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
     except Project.DoesNotExist:
-        # Return a 404 if the project is not found
         return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+        
 
-    # Serialize the project object and return the data
-    serializer = ProjectSerializer(project)
-    return Response(serializer.data)
 
 
 @api_view(['PUT'])

@@ -2,14 +2,16 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path('register/', CompanyRegistrationView.as_view(), name='company-registration'),  # Added parentheses here
-    path('activate/<uidb64>/', activate, name='activate-company'),  # Ensure this matches with the send_activation_email
-    path('search/', search_company, name='company-search'),
-    path('list/', list_company, name='company-list'),
-    path('update/<int:id>/', company_update, name='company-update'),
-    path('delete/<int:id>/', company_delete, name='company-delete'),
+    path('register/', CompanyRegistrationView.as_view(), name='company-registration'),  # Company registration
+    path('activate/<uidb64>/', activate, name='activate-company'),  # Company activation via email
+    path('search/', search_company, name='company-search'),  # Search companies
+    path('list/', list_company, name='company-list'),  # List all companies
+    path('update/', update_company, name='company-update'),  # Update company profile
+    path('delete/', company_delete, name='company-delete'),  # Delete company profile
 
-    path('profile/', get_company_profile, name='company-profile'),# For the logged-in company's profile
-    path('profile/<int:id>/', get_company_profile, name='company-detail'),  # For viewing any company by ID
-    
-    ]
+    # Fetch the logged-in user's company profile
+    path('loggedin-profile/', get_logged_in_company_profile, name='loggedin-company-profile'),
+
+    # Fetch any company's profile by ID
+    path('authorprofile/<str:username>', get_company_profile, name='authorcompany-profile'),  
+]

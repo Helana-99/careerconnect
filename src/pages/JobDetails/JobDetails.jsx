@@ -247,9 +247,16 @@
 
 
 
+
+
+
+
+
+
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Container, Row, Col, Button, Image, Card } from 'react-bootstrap';
+import { Container, Row, Col, Button, Image, Card, Modal, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faUsers, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import Cookies from 'js-cookie';
@@ -257,7 +264,11 @@ import defaultCompanyLogo from '../../assets/com.jpg';
 
 const JobDetails = () => {
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false); // State to control the modal
+  const [cv, setCv] = useState(null); // State to store the uploaded CV
+  const [message, setMessage] = useState(''); // State to store the message
   const [jobDetails, setJobDetails] = useState(null);
+  const [individualId, setIndividualId] = useState(null); // State to store individual ID
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -294,6 +305,17 @@ const JobDetails = () => {
         setJobDetails(data);
         console.log('Job Details:', data);
 
+        // Fetch individual ID (if logged-in user is an individual)
+        const userResponse = await fetch('http://127.0.0.1:8000/api/individual/profile/', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setIndividualId(userData.id); // Assuming the API returns the individual's ID
+        }
       } catch (error) {
         setError('Failed to load job details. Please try again later.');
       } finally {
@@ -311,6 +333,77 @@ const JobDetails = () => {
   if (error) {
     return <div>{error}</div>;
   }
+  const handleModalClose = () => setShowModal(false);
+  const handleModalOpen = () => setShowModal(true);
+  const handleFileChange = (e) => setCv(e.target.files[0]);
+  
+  const handleMessageSubmit = async () => {
+    if (!message) {
+      alert('Please enter a message before submitting.');
+      return;
+    }
+  
+    const token = Cookies.get('authToken') || localStorage.getItem('authToken');
+    if (!token) {
+      alert('You are not authorized. Please log in again.');
+      return;
+    }
+  
+    try {
+      // Check if user has already applied to the job
+      const checkResponse = await fetch(`http://127.0.0.1:8000/api/application/check/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${token}`,  // Ensure correct token scheme (Token or Bearer)
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ individual: individualId, job: jobDetails.id }),
+      });
+  
+      if (checkResponse.ok) {
+        const data = await checkResponse.json();
+        if (data.exists) {
+          alert('You have already applied to this job.');
+          return;
+        }
+      } else {
+        throw new Error('Failed to check application.');
+      }
+  
+      // Prepare FormData for file upload
+      const formData = new FormData();
+      formData.append('individual', individualId);
+      formData.append('job', jobDetails.id);
+      formData.append('message', message);
+      if (cv) {
+        formData.append('cv', cv);
+      }
+  
+      // Submit application
+      const response = await fetch(`http://127.0.0.1:8000/api/application/create/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${token}`,  // Ensure correct token scheme (Token or Bearer)
+          // Do NOT set 'Content-Type' here, fetch will handle it automatically
+        },
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Error: ${JSON.stringify(errorData)}`);
+        return;
+      }
+  
+      alert('Application submitted successfully!');
+      handleModalClose();
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      alert('Failed to submit application. Please try again.');
+    }
+  };
+  
+  
 
   return (
     <Container className="mt-5">
@@ -338,7 +431,7 @@ const JobDetails = () => {
           </p>
           <h5>ABOUT THE JOB</h5>
           <p className="text-muted">{jobDetails?.description || 'Description Not Available'}</p>
-          <Button variant="primary" className="me-2 w-25">
+          <Button variant="primary" className="me-2 w-25" onClick={handleModalOpen}>
             Apply
           </Button>
         </Col>
@@ -351,6 +444,36 @@ const JobDetails = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* Modal for applying to the job */}
+      <Modal show={showModal} onHide={handleModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Apply to {jobDetails.title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="applicationMessage">
+              <Form.Label>Message</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Write your message here"
+              />
+            </Form.Group>
+            <Form.Group controlId="cvUpload" className="mt-3">
+              <Form.Label>Upload CV (optional)</Form.Label>
+              <Form.Control type="file" onChange={handleFileChange} accept=".pdf,.doc,.docx" />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleMessageSubmit}>
+            Submit Application
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
