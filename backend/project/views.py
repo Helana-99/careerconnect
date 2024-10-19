@@ -50,20 +50,19 @@ def project_list(request):
         return Response(serializer.data)
 
 
+
 @api_view(['GET'])
 def project_detail(request, id):
     try:
         # Retrieve the project by the given ID
         project = Project.objects.get(pk=id)
-        print(project)  # Log the project data for debugging
-        # Serialize the project object and return the data
-        serializer = ProjectSerializer(project)
-        return Response(serializer.data)
     except Project.DoesNotExist:
-        print(f"Project with ID {id} not found")
+        # Return a 404 if the project is not found
         return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
 
-
+    # Serialize the project object and return the data
+    serializer = ProjectSerializer(project)
+    return Response(serializer.data)
 
 
 @api_view(['PUT'])

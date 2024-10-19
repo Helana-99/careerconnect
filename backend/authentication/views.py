@@ -21,45 +21,45 @@ from rest_framework.response import Response
 
 # Create your views here.
 
-# class UserDetailView(RetrieveUpdateAPIView):
-#     serializer_class = UserSerializer
-#     permission_classes = [IsAuthenticated]
+class UserDetailView(RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
-#     def get_object(self):
-#         return self.request.user
+    def get_object(self):
+        return self.request.user
 
-#     def get(self, request, *args, **kwargs):
-#         user = self.request.user  # Get the authenticated user
-#         user_data = UserSerializer(user).data  # Serialize user data
+    def get(self, request, *args, **kwargs):
+        user = self.request.user  # Get the authenticated user
+        user_data = UserSerializer(user).data  # Serialize user data
 
-#         if user.role == 'company':
-#             try:
-#                 # Fetch the company profile
-#                 company = Company.objects.get(user=user)
-#                 company_data = CompanySerializer(company).data
+        if user.role == 'company':
+            try:
+                # Fetch the company profile
+                company = Company.objects.get(user=user)
+                company_data = CompanySerializer(company).data
 
-#                 # Combine user data and company-specific data
-#                 response_data = {
-#                     'user': user_data,  # Include user data
-#                     **company_data   
-#                 }
-#                 return Response(response_data)
+                # Combine user data and company-specific data
+                response_data = {
+                    'user': user_data,  # Include user data
+                    **company_data   
+                }
+                return Response(response_data)
 
-#             except Company.DoesNotExist:
-#                 return Response({'message': 'Company profile not found'}, status=status.HTTP_404_NOT_FOUND)
+            except Company.DoesNotExist:
+                return Response({'message': 'Company profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
-#         else:
-#             return Response({'message': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
 
-#     def patch(self, request, *args, **kwargs):
-#         user = self.get_object()  # Get the authenticated user
-#         serializer = self.get_serializer(user, data=request.data.get('user'), partial=True)
+    def patch(self, request, *args, **kwargs):
+        user = self.get_object()  # Get the authenticated user
+        serializer = self.get_serializer(user, data=request.data.get('user'), partial=True)
 
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         else:
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def get_csrf_token(request):
@@ -84,16 +84,11 @@ class UserLogoutView(APIView):
         except Exception as e:
             print(f"Error during logout: {e}")  # Print error for debugging
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 class UserLoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        # Extract username and password from the request data
         username = request.data.get('username')
         password = request.data.get('password')
-
-        # Validate input data
-        if not username or not password:
-            return Response({'message': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Authenticate the user
         user = authenticate(request, username=username, password=password)
@@ -102,30 +97,26 @@ class UserLoginView(ObtainAuthToken):
             # Log the user in
             login(request, user)
 
-            # Generate or retrieve the user's token
-            try:
-                token, created = Token.objects.get_or_create(user=user)
-            except Exception as e:
-                return Response({'message': 'Error generating token'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Generate or get the token for the user
+            token, created = Token.objects.get_or_create(user=user)
 
             response_data = {
                 'token': token.key,
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'role': user.role
-                },
+                'user': {'id': user.id, 'username': user.username, 'role': user.role}, # Add user role to response
+                'user': {'id': user.id, 'username': user.username, 'role': user.role}, # Add user role to response
             }
 
-            # If the user is a company, include the company profile in the response
+            # If the user is a company, fetch the company profile
             if user.role == 'company':
-                company = Company.objects.filter(user=user).first()
-                if company:
+                try:
+                    company = Company.objects.get(user=user)
                     response_data['company'] = CompanySerializer(company).data
-                else:
+                    response_data['company'] = CompanySerializer(company).data
+                except Company.DoesNotExist:
                     return Response({'message': 'Company profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response(response_data, status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_200_OK)  # Add success status code
+            return Response(response_data, status=status.HTTP_200_OK)  # Add success status code
 
-        # If authentication fails, return an unauthorized response
+        # If authentication fails, return unauthorized response
         return Response({'message': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)

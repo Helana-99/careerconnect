@@ -75,7 +75,7 @@ console.log('AuthToken in LocalStorage:', localStorage.getItem('authToken'));
         navigate(`/individual/profile/${userId}`);
         break;
       case 'company':
-        navigate(`/company/profile/`);
+        navigate(`/company/profile/${userId}`);
         break;
       default:
         console.warn("Unknown user type or invalid data");

@@ -23,4 +23,3 @@ class CompanySerializer(serializers.ModelSerializer):
         company = Company.objects.create(user=user, **validated_data)
             
         return company
-    

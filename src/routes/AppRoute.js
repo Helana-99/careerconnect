@@ -9,6 +9,7 @@ import Footer from '../components/Footer.jsx';
 import LandingPage from '../pages/LandingPage/LandingPage.jsx';
 import Profile from '../pages/Profile/Profile.jsx'; 
 import CompanyProfile from '../pages/CompanyProfile/CompanyProfile.jsx';
+import AuthorCompanyProfile from '../pages/AuthorCompany/AuthorCompany.jsx';
 
 import JobList from '../pages/JobList/JobList.jsx';
 import JobDetails from '../pages/JobDetails/JobDetails.jsx';
@@ -33,14 +34,11 @@ function AppRoutes() {
           <Route path="/register/company" element={<CompanyForm />} />
           
           {/* Profile Routes */}
-          <Route path="/company/profile" element={<CompanyProfile />} />     
-          <Route path="/company/:id/profile" element={<CompanyProfile />} />
+          <Route path="/company/profile/:id" element={<CompanyProfile />} />
+          <Route path="/company/authorprofile/:username" element={<AuthorCompanyProfile />} />
   
           <Route path="/individual/profile/:id" element={<Profile />} />
           <Route path="/individual/profile" element={<Profile />} />
-
-
-          
 
           {/* Job Routes */}
           <Route path="/jobs" element={<JobList />} />  

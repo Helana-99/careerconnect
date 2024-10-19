@@ -21,6 +21,7 @@ function JobListComponent() {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         setJobs(data);
+        console.log('Jobs:', data);
 
         const uniqueIndustries = [...new Set(data.map(job => job.industry))];
         setIndustries(uniqueIndustries);
@@ -41,7 +42,13 @@ function JobListComponent() {
     );
   });
 
-  const handleJobClick = id => navigate(`/jobdetails/${id}`);
+  const handleJobClick = id => {
+    // Store the job ID in localStorage
+    localStorage.setItem('jobId', id);
+
+    // Navigate to the job details page
+    navigate(`/jobdetails/${id}`);
+  };
 
   return (
     <Container className="mt-5">

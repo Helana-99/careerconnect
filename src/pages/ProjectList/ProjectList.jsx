@@ -42,8 +42,9 @@ function ProjectListComponent() {
     );
   });
 
-  const handleProjectClick = (id) => {
-    navigate(`/projectdetails/${id}`);
+  const handleProjectClick = (username) => {
+    // Navigate to project details page based on the author's username
+    navigate(`/project/author/${username}`);
   };
 
   const handleCreateNewProject = () => {

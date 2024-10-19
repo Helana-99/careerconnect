@@ -1,3 +1,4 @@
+
 from django.shortcuts import render, redirect
 from rest_framework import viewsets, status,permissions
 from rest_framework.decorators import api_view, permission_classes
@@ -67,49 +68,26 @@ class IndividualRegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @api_view(['GET'])
-# def author_profile(request, id):
-#     try:
-#         individual = Individual.objects.get(pk=id)
-#         serializer = IndividualSerializer(individual)
-#         return Response(serializer.data)
-#     except Individual.DoesNotExist:
-#         return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-# @api_view(['GET'])
-# def user_profile(request, id=None):
-#     # If an ID is provided, fetch the profile for the specified user
-#     if id:
-#         try:
-#             individual = Individual.objects.get(pk=id)
-#             serializer = IndividualSerializer(individual)
-#             return Response(serializer.data)
-#         except Individual.DoesNotExist:
-#             return Response({"error": "Profile not found"}, status=404)
-
-#     # Otherwise, return the profile of the logged-in user
-#     if request.user.is_authenticated:
-#         try:
-#             individual = Individual.objects.get(user=request.user)
-#             serializer = IndividualSerializer(individual)
-#             return Response(serializer.data)
-#         except Individual.DoesNotExist:
-#             return Response({"error": "Profile not found"}, status=404)
-
-#     return Response({"error": "Unauthorized"}, status=401)
-
-
 @api_view(['GET'])
-def user_profile(request, id=None):
+def author_profile(request, id):
     try:
-        individual = Individual.objects.get(user__id=id)
+        individual = Individual.objects.get(pk=id)
         serializer = IndividualSerializer(individual)
         return Response(serializer.data)
     except Individual.DoesNotExist:
-        print(f"Profile not found for user ID: {id}")
-        return Response({"error": "Profile not found"}, status=404)
+        return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
+
+@api_view(['GET'])
+def user_profile(request):
+    if request.user.is_authenticated:
+        try:
+            individual = Individual.objects.get(user=request.user)
+            serializer = IndividualSerializer(individual)
+            return Response(serializer.data)
+        except Individual.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=404)
+    return Response({"error": "Unauthorized"}, status=401)
 
 @api_view(['GET'])
 def search_individual(request):
@@ -120,7 +98,7 @@ def search_individual(request):
 
     if username:
         # Filter by username
-        individuals = individuals.filter(user_username_icontains=username)
+        individuals = individuals.filter(user__username__icontains=username)
 
     if specialization:
         # Filter by specialization
@@ -140,38 +118,24 @@ def list_individual(request):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def individual_update(request):
+def individual_update(request, id):
     try:
-        # Fetch the profile for the logged-in user
-        individual = Individual.objects.get(user=request.user)
-        
-        # Update experience data if provided
-        experience_data = request.data.get('experience', [])  # This should be a list of experiences
+        individual = Individual.objects.get(pk=id)
+    except (Individual.DoesNotExist, ValueError):
+        return Response({'error': 'Profile not found or invalid ID'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Assuming experience_data is a list of dictionaries
-        for experience in experience_data:
-            job_title = experience.get('job_title', 'Job Title')
-            company = experience.get('company', 'Company')
-            duration = experience.get('duration', 'Duration')
-            description = experience.get('description', 'Description')
+    # Ensure that the user is the owner of the profile
+    if individual.user != request.user:
+        return Response({'detail': 'You do not have permission to edit this profile.'}, status=status.HTTP_403_FORBIDDEN)
 
-            # Here you can update or process each experience as needed
-            # For instance, you might update the related models or fields in the Individual model
+    serializer = IndividualSerializer(individual, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Update the individual instance with other provided data (if any)
-        serializer = IndividualSerializer(individual, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Profile updated successfully'}, status=200)
-        else:
-            return Response(serializer.errors, status=400)
 
-    except Individual.DoesNotExist:
-        return Response({'error': 'Profile not found'}, status=404)
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
-    
-    
+
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def individual_delete(request, id):

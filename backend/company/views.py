@@ -1,5 +1,6 @@
+
 from django.shortcuts import render, redirect
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status,permissions
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -16,45 +17,42 @@ from django.utils.encoding import force_bytes, force_str
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import Company
-from .serializers import CompanySerializer
+from  .serializers import * 
+from .models import *
 from authentication.models import User
 from django.http import JsonResponse
 from django.db.models import Q
 from django.conf import settings
 from django.db.models import Avg
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Company
-from .serializers import CompanySerializer
 
 
+# Create your views here.
 
 def send_activation_email(user, request):
     subject = "CareerConnect Account Activation"
-    uid = urlsafe_base64_encode(force_bytes(user.user.pk))
+    uid = urlsafe_base64_encode(force_bytes(user.user.pk)) 
+    print("uid",uid)
     activation_link = request.build_absolute_uri(reverse('activate-company', kwargs={'uidb64': uid}))
     message = f"Hello {user.user.username}, please click the link to activate your account: {activation_link}"
 
     send_mail(
         subject,
         message,
-        'CareerConnect <safa.suli.2@gmail.com>',
-        [user.user.email],
+        'CareerConnect <safa.suli.2@gmail.com>',  
+        [user.user.email], 
         fail_silently=False,
     )
-
 def activate(request, uidb64):
     try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-        user.is_active = True
+        uid = force_str(urlsafe_base64_decode(uidb64))  
+        user = User.objects.get(pk=uid) 
+        user.is_active = True 
         user.save()
         messages.success(request, 'Your account has been successfully activated!')
-        return redirect('http://localhost:3000/login')
+        return redirect('http://localhost:3000/login') 
     except User.DoesNotExist:
+        print(request)
         messages.error(request, 'Invalid activation link')
         return redirect('http://localhost:3000/register/company')
 
@@ -63,25 +61,26 @@ class CompanyRegistrationView(APIView):
     def post(self, request):
         serializer = CompanySerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            user=serializer.save()
             send_activation_email(user, request)
             messages.success(request, f'Dear {user.user.username}, please go to your email inbox and click on the received activation link to confirm and complete the registration. Check your spam folder if necessary.')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow public access to view any company's profile
-def get_company_profile(request):
+def get_company_profile(request, id=None):
     try:
-        # Fetch the logged-in user's company profile
-        company = request.user.company
+        if id:
+            company = Company.objects.get(pk=id)  # Fetch company by ID
+        else:
+            company = request.user.company  # Fetch the logged-in user's company
 
-        # Get all jobs related to this company
         jobs = company.job_set.all()
-        job_data = [{'id': job.id, 'title': job.title, 'location': job.location} for job in jobs]
+        job_data = [{'id': job.id, 'title': job.title} for job in jobs]
 
-        # Prepare data for response
         data = {
             'id': company.id,
             'user': {
@@ -91,22 +90,9 @@ def get_company_profile(request):
             'logo': company.logo.url if company.logo else None,
             'bio': company.bio,
             'industry': company.industry,
-            'registration_id': company.registration_id,
-            'phone_number': company.phone_number,
-            'location': company.location,
-            'client_base': company.client_base,
-            'website': company.website,
-            'company_size': company.company_size,
-            'founded': company.founded,
-            'linkedin': company.linkedin,
-            'twitter': company.twitter,
-            'facebook': company.facebook,
-            'employees': company.employees,
             'jobs': job_data,
         }
-
         return Response(data)
-    
     except Company.DoesNotExist:
         return Response({'error': 'Company not found'}, status=404)
     except Exception as e:
@@ -114,84 +100,65 @@ def get_company_profile(request):
 
 
 
-
 @api_view(['GET'])
-@permission_classes([AllowAny]) 
+@permission_classes([AllowAny])  # Allow unauthenticated access for searching
 def search_company(request):
-    company_name = request.query_params.get('company_name', None)
+    # user_name = request.query_params.get('company_name', None)
+    company_name = request.query_params.get('company_name', None)  # Renamed from user_name to company_name for clarity
     location = request.query_params.get('location', None)
     industry = request.query_params.get('industry', None)
-    company_size = request.query_params.get('company_size', None)
-    client_base = request.query_params.get('client_base', None)
-    founded_after = request.query_params.get('founded_after', None)
-    employees_min = request.query_params.get('employees_min', None)
 
     companies = Company.objects.all()
 
-    # Filtering by company name (based on the User's username)
     if company_name:
-        companies = companies.filter(user_username_icontains=company_name)
-
-    # Filtering by location
+        companies = companies.filter(company_name__icontains=company_name)
     if location:
         companies = companies.filter(location__icontains=location)
-
-    # Filtering by industry
     if industry:
         companies = companies.filter(industry__icontains=industry)
-
-    # Filtering by company size
-    if company_size:
-        companies = companies.filter(company_size__iexact=company_size)
-
-    # Filtering by client base
-    if client_base is not None:  # Ensuring that client_base is checked for both True/False
-        companies = companies.filter(client_base=client_base.lower() == 'true')
-
-    # Filtering by founded date (companies founded after a certain year)
-    if founded_after:
-        companies = companies.filter(founded__gte=founded_after)
-
-    # Filtering by minimum number of employees
-    if employees_min:
-        companies = companies.filter(employees__gte=int(employees_min))
 
     # Serialize the filtered companies
     serializer = CompanySerializer(companies, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
+# Get allcompanies :
 @api_view(['GET'])
 @permission_classes([AllowAny])  # Allow unauthenticated access for GET requests
 def list_company(request):
-    companies = Company.objects.all()
-    serializer = CompanySerializer(companies, many=True)
-    return Response(serializer.data)
+    if request.method == 'GET':
+        companies = Company.objects.all()
+        serializer = CompanySerializer(companies, many=True)
+        return Response(serializer.data)
+
 
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def update_company(request):
+def company_update(request, id):
     try:
-        company = request.user.company
-
-        # Pass only the fields that belong to the Company model
-        serializer = CompanySerializer(company, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        company = Company.objects.get(pk=id)
     except Company.DoesNotExist:
-        return Response({'error': 'Company profile not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if company.user != request.user:
+        return Response({'detail': 'You do not have permission to edit this profile.'},
+                        status=status.HTTP_403_FORBIDDEN)
+
+    serializer = CompanySerializer(company, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def company_delete(request):
+def company_delete(request, id):
     try:
-        company = request.user.company
+        company = Company.objects.get(pk=id)
     except Company.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -202,3 +169,4 @@ def company_delete(request):
 
     company.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+

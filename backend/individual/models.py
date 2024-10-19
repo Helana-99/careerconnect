@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator
 from authentication.models import User
 
 # Create your models here.
- 
+    
 
 class Individual(models.Model):
     ACCOUNT_TYPE_CHOICES = [
@@ -40,7 +40,7 @@ class Individual(models.Model):
     bio = models.TextField(blank=True, null=True)
 
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.user.username}"
     
     def calculate_age(self):
@@ -54,14 +54,5 @@ class Individual(models.Model):
         if self.date_of_birth:
             self.age = self.calculate_age()
         super(Individual, self).save(*args, **kwargs)
-
-
-class Experience(models.Model):
-    profile = models.ForeignKey(Individual, on_delete=models.CASCADE, related_name='experiences')
-    job_title = models.CharField(max_length=255)
-    company = models.CharField(max_length=255)
-    duration = models.CharField(max_length=100)  # Example format: "2 years, 3 months"
-    description = models.TextField(null=True, blank=True)
-
-    def _str_(self):
-        return f"{self.job_title} at {self.company}"
+    
+    

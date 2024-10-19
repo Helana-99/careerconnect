@@ -4,11 +4,10 @@ import './CompanyProfile.css';
 import cover from "../../assets/images/company/cover.jpg"; 
 import defaultProfile from "../../assets/c1.png";
 import Cookies from 'js-cookie';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card, Button } from 'react-bootstrap';
 
 const CompanyProfile = () => {
-  const { id } = useParams(); // Get the company ID from the URL
   const navigate = useNavigate();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +24,13 @@ const CompanyProfile = () => {
     const fetchCompanyProfile = async () => {
       try {
         const token = Cookies.get('authToken');
-        const response = await axios.get('http://127.0.0.1:8000/api/company/profile/', {
+        if (!token) {
+          setError('No authentication token found.');
+          setLoading(false);
+          return;
+        }
+  
+        const response = await axios.get('http://127.0.0.1:8000/api/company/loggedin-profile/', {
           headers: { Authorization: `Token ${token}` },
         });
         setCompany(response.data);
@@ -34,6 +39,7 @@ const CompanyProfile = () => {
           industry: response.data.industry || '',
         });
       } catch (error) {
+        console.error('Error fetching company profile:', error);
         setError('Error fetching company profile.');
       } finally {
         setLoading(false);
@@ -41,7 +47,7 @@ const CompanyProfile = () => {
     };
     fetchCompanyProfile();
   }, []);
-
+  
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
