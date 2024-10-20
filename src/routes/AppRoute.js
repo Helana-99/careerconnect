@@ -5,12 +5,14 @@ import Register from '../pages/Register/Register';
 import ClientForm from '../pages/Register/ClientForm';
 import CompanyForm from '../pages/Register/CompanyForm';
 import AppNavbar from '../components/Navbar.jsx'; 
+import SearchResults from '../pages/SearchResult/SearchResults.jsx';
 import Footer from '../components/Footer.jsx';  
 import LandingPage from '../pages/LandingPage/LandingPage.jsx';
 import Profile from '../pages/Profile/Profile.jsx'; 
 import CompanyProfile from '../pages/CompanyProfile/CompanyProfile.jsx';
 import AuthorCompanyProfile from '../pages/AuthorCompany/AuthorCompany.jsx';
 
+import AuthorIndividualProfile from '../pages/AuthorIndividual/AuthorIndividual.jsx';
 import JobList from '../pages/JobList/JobList.jsx';
 import JobDetails from '../pages/JobDetails/JobDetails.jsx';
 import ProjectDetails from '../pages/ProjectDetails/ProjectDetails.jsx';
@@ -38,8 +40,7 @@ function AppRoutes() {
           <Route path="/company/authorprofile/:username" element={<AuthorCompanyProfile />} />
   
           <Route path="/individual/profile/:id" element={<Profile />} />
-          <Route path="/individual/profile" element={<Profile />} />
-
+          <Route path="/authorprofile/:username" element={<AuthorIndividualProfile />} />
           {/* Job Routes */}
           <Route path="/jobs" element={<JobList />} />  
           <Route path="/jobpost" element={<JobPost />} />
@@ -52,6 +53,8 @@ function AppRoutes() {
           <Route path="/projectpost" element={<ProjectPost />} />
           <Route path="/project/:id/update/" element={<EditProject />} />
 
+          {/* sraech */}
+          <Route path="/search" element={<SearchResults/>} />
         </Routes>
         <Footer /> 
       </Router>

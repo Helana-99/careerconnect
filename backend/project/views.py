@@ -70,21 +70,30 @@ def project_list(request):
         projects = Project.objects.all()
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
+    
 
+    
 @api_view(['GET'])
-def project_detail(request, username):
+def project_detail(request, id):
     try:
-        # Retrieve the project by the author's username
-        project = Project.objects.filter(author__username=username)
-        if project.exists():
-            serializer = ProjectSerializer(project, many=True)
-            return Response(serializer.data)
-        else:
-            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+        # Retrieve the project by the given ID
+        project = Project.objects.get(pk=id)
     except Project.DoesNotExist:
+        # Return a 404 if the project is not found
         return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
-        
 
+    # Serialize the job object and return the data
+    serializer = ProjectSerializer(project)
+    return Response(serializer.data)
+
+class ProjectList(generics.ListCreateAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    name = 'project-list'
+
+    filter_fields = (
+        'industry'
+    )
 
 
 @api_view(['PUT'])

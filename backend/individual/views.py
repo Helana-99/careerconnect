@@ -23,6 +23,8 @@ from django.db.models import Q
 from django.conf import settings
 from django.db.models import Avg
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+
 
 
 # Create your views here.
@@ -65,39 +67,7 @@ class IndividualRegistrationView(APIView):
             messages.success(request, f'Dear {user.user.username}, please go to your email inbox and click on the received activation link to confirm and complete the registration. Check your spam folder if necessary.')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# @api_view(['GET'])
-# def author_profile(request, id):
-#     try:
-#         individual = Individual.objects.get(pk=id)
-#         serializer = IndividualSerializer(individual)
-#         return Response(serializer.data)
-#     except Individual.DoesNotExist:
-#         return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-# @api_view(['GET'])
-# def user_profile(request, id=None):
-#     # If an ID is provided, fetch the profile for the specified user
-#     if id:
-#         try:
-#             individual = Individual.objects.get(pk=id)
-#             serializer = IndividualSerializer(individual)
-#             return Response(serializer.data)
-#         except Individual.DoesNotExist:
-#             return Response({"error": "Profile not found"}, status=404)
-
-#     # Otherwise, return the profile of the logged-in user
-#     if request.user.is_authenticated:
-#         try:
-#             individual = Individual.objects.get(user=request.user)
-#             serializer = IndividualSerializer(individual)
-#             return Response(serializer.data)
-#         except Individual.DoesNotExist:
-#             return Response({"error": "Profile not found"}, status=404)
-
-#     return Response({"error": "Unauthorized"}, status=401)
+    
 
 
 @api_view(['GET'])
@@ -120,7 +90,7 @@ def search_individual(request):
 
     if username:
         # Filter by username
-        individuals = individuals.filter(user_username_icontains=username)
+        individuals = individuals.filter(user__username__icontains=username)
 
     if specialization:
         # Filter by specialization
@@ -186,3 +156,62 @@ def individual_delete(request, id):
 
     individual.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])  # Allow public access to view any individual's profile
+def get_individual_profile(request, username):
+    # Fetch the individual profile by associated user's username
+    individual = get_object_or_404(Individual, user__username=username)
+    
+    # Get all experiences related to this individual
+    experiences = individual.experiences.all()
+    experience_data = [{'job_title': exp.job_title, 'company': exp.company, 'duration': exp.duration, 'description': exp.description} for exp in experiences]
+
+    # Prepare data for the response
+    data = {
+        'id': individual.id,
+        'user': {
+            'username': individual.user.username,
+            'email': individual.user.email,
+        },
+        'date_of_birth': individual.date_of_birth,
+        'gender': individual.gender,
+        'specialization': individual.specialization,
+        'national_id': individual.national_id,
+        'account_type': individual.account_type,
+        'phone_number': individual.phone_number,
+        'age': individual.age,
+        'years_of_experience': individual.years_of_experience,
+        'profile_image': individual.profile_image.url if individual.profile_image else None,
+        'skills': individual.skills,
+        'bio': individual.bio,
+        'experiences': experience_data,  # Add experiences to the response
+    }
+    
+    return Response(data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+class CurrentUserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            individual = Individual.objects.get(user=request.user)
+            serializer = IndividualSerializer(individual)
+            return Response(serializer.data, status=200)
+        except Individual.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=404)

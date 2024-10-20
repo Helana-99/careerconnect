@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Navbar as BootstrapNavbar, Nav, Container, Dropdown } from 'react-bootstrap';
@@ -13,63 +13,42 @@ function AppNavbar() {
   const { isAuthenticated, logout, setIsAuthenticated, userType, userId } = useAuth();
   const navigate = useNavigate();
 
+  const [searchTerm, setSearchTerm] = useState('');
+
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     setIsAuthenticated(!!token);
   }, [setIsAuthenticated]);
 
   const handleLogout = async () => {
-    const token = localStorage.getItem('authToken');  // Get token from localStorage
-  
+    const token = localStorage.getItem('authToken');  
     if (token) {
       try {
-        // Send the logout request to the backend with the Authorization header
-        await axios.post(`http://127.0.0.1:8000/api/auth/logout/`, {}, {
-          headers: {
-            'Authorization': `Token ${token}`,
-          },
+        await axios.post('http://127.0.0.1:8000/api/auth/logout/', {}, {
+          headers: { 'Authorization': `Token ${token}` },
         });
-  
-        // Clear token and reset authentication state
-        localStorage.removeItem('authToken');  // Remove the token from localStorage
-        Cookies.remove('authToken');  // Remove the token from cookies
-        axios.defaults.headers.common["Authorization"] = '';  // Clear the Axios default token header
-  
-        // Reset authentication state in React (set isAuthenticated to false)
+        localStorage.removeItem('authToken');  
+        Cookies.remove('authToken');  
+        axios.defaults.headers.common["Authorization"] = '';  
         setIsAuthenticated(false);
-        logout();  // This could be a context method to reset user session info
-  
-        // Redirect to the login page after successful logout
+        logout();  
         navigate('/login');
-  
       } catch (error) {
         console.error('Error during logout:', error);
         alert('Logout failed. Please try again.');
       }
     } else {
-      // If no token is found, proceed with logout and redirect
       setIsAuthenticated(false);
       logout();
       navigate('/login');
     }
   };
-  
-  
-  
-  console.log('IsAuthenticated:', isAuthenticated);
-console.log('AuthToken in LocalStorage:', localStorage.getItem('authToken'));
-
 
   const navigateToProfile = () => {
     if (!userType || !userId) {
       console.error("User type or ID is missing.");
       return;
     }
-  
-    console.log("Navigating for userType:", userType);
-    console.log("Navigating for userId:", userId);
-  
-    // Navigate based on user role
     switch (userType) {
       case 'individual':
         navigate(`/individual/profile/${userId}`);
@@ -82,7 +61,11 @@ console.log('AuthToken in LocalStorage:', localStorage.getItem('authToken'));
         break;
     }
   };
-  
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    navigate(`/search?query=${searchTerm}`);
+  };
 
   return (
     <BootstrapNavbar className="navbar navbar-expand-lg" style={{ padding: '0' }}>
@@ -127,6 +110,20 @@ console.log('AuthToken in LocalStorage:', localStorage.getItem('authToken'));
               </Link>
             </Nav.Item>
           </Nav>
+
+          {/* Search Bar */}
+          <form onSubmit={handleSearchSubmit} className="d-flex">
+            <div className="InputContainernav me-2">
+              <input
+                placeholder="Search Individuals or Companies..."
+                className="input form-control"
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+          </form>
 
           <Nav className="ms-auto">
             {isAuthenticated ? (

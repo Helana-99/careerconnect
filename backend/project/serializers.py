@@ -26,7 +26,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_author_username(self, obj):
-        return obj.author.user.first_name if obj.author and obj.author.user else None  # Access the user's first name through author
+        return obj.author.user.username if obj.author and obj.author.user else None  # Access the user's first name through author
     
     def get_author_profile_image(self, obj):
         return obj.author.profile_image.url if obj.author and obj.author.profile_image else None  # Access profile image URL

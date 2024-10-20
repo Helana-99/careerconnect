@@ -8,18 +8,19 @@ import os
 
 # Create your models here.
 def validate_pdf(value):
-    ext=os.path.splitext(value.name)[1]
-    if ext.lower() !='.pdf':
+    ext = os.path.splitext(value.name)[1]
+    if ext.lower() != '.pdf':
         raise ValidationError("Only PDF files are allowed.")
 
 class Proposal(models.Model):
-    individual = models.ForeignKey(Individual,on_delete=models.CASCADE, null=True, blank=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True)
-    job = models.ForeignKey(Job, on_delete=models.CASCADE, null=True, blank=True)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True)
+    individual = models.ForeignKey(Individual, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True)  # Allow null
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True)  # Allow null
     message = models.TextField()
-    cv = models.FileField(upload_to='cvs/', blank=True, null=True, validators=[validate_pdf])
+    cv = models.FileField(upload_to='cvs/', null=True, blank=True)  # Allow null
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     class Meta:
         constraints = [
@@ -27,7 +28,7 @@ class Proposal(models.Model):
             models.UniqueConstraint(fields=['company', 'project'], name='unique_company_project_proposal_'),
         ]
 
-    def _str_(self):
+    def _str_(self):  # Fix the method name from _str_ to __str__
         if self.individual and self.job:
             return f"Proposal by {self.individual.user.first_name} {self.individual.user.last_name} to Job {self.job.title}"
         elif self.company and self.project:

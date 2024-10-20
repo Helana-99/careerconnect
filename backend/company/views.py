@@ -150,56 +150,79 @@ def get_company_profile(request, username):
 
 
 
+# @api_view(['GET'])
+# @permission_classes([AllowAny])
+# def search_company(request):
+#     company_name = request.query_params.get('company_name', None)
+#     location = request.query_params.get('location', None)
+#     industry = request.query_params.get('industry', None)
+#     company_size = request.query_params.get('company_size', None)
+#     client_base = request.query_params.get('client_base', None)
+#     founded_after = request.query_params.get('founded_after', None)
+#     employees_min = request.query_params.get('employees_min', None)
+
+#     companies = Company.objects.all()
+
+#     # Filtering by company name (based on the User's username)
+#     if company_name:
+#         companies = companies.filter(user_username_icontains=company_name)
+
+#     # Filtering by location
+#     if location:
+#         companies = companies.filter(location__icontains=location)
+
+#     # Filtering by industry
+#     if industry:
+#         companies = companies.filter(industry__icontains=industry)
+
+#     # Filtering by company size
+#     if company_size:
+#         companies = companies.filter(company_size__iexact=company_size)
+
+#     # Filtering by client base
+#     if client_base is not None:  # Ensuring that client_base is checked for both True/False
+#         companies = companies.filter(client_base=client_base.lower() == 'true')
+
+#     # Filtering by founded date (companies founded after a certain year)
+#     if founded_after:
+#         companies = companies.filter(founded__gte=founded_after)
+
+#     # Filtering by minimum number of employees
+#     if employees_min:
+#         companies = companies.filter(employees__gte=int(employees_min))
+
+#     # Retrieve the first matching company or return a 404 if no match is found
+#     company = companies.first()
+
+#     if company:
+#         # Serialize the single company
+#         serializer = CompanySerializer(company)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+#     else:
+#         return Response({"detail": "No matching company found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def search_company(request):
     company_name = request.query_params.get('company_name', None)
     location = request.query_params.get('location', None)
     industry = request.query_params.get('industry', None)
-    company_size = request.query_params.get('company_size', None)
-    client_base = request.query_params.get('client_base', None)
-    founded_after = request.query_params.get('founded_after', None)
-    employees_min = request.query_params.get('employees_min', None)
 
     companies = Company.objects.all()
 
-    # Filtering by company name (based on the User's username)
     if company_name:
-        companies = companies.filter(user_username_icontains=company_name)
-
-    # Filtering by location
+        companies = companies.filter(user__username__icontains=company_name)
     if location:
         companies = companies.filter(location__icontains=location)
-
-    # Filtering by industry
     if industry:
         companies = companies.filter(industry__icontains=industry)
 
-    # Filtering by company size
-    if company_size:
-        companies = companies.filter(company_size__iexact=company_size)
+    serializer = CompanySerializer(companies, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # Filtering by client base
-    if client_base is not None:  # Ensuring that client_base is checked for both True/False
-        companies = companies.filter(client_base=client_base.lower() == 'true')
-
-    # Filtering by founded date (companies founded after a certain year)
-    if founded_after:
-        companies = companies.filter(founded__gte=founded_after)
-
-    # Filtering by minimum number of employees
-    if employees_min:
-        companies = companies.filter(employees__gte=int(employees_min))
-
-    # Retrieve the first matching company or return a 404 if no match is found
-    company = companies.first()
-
-    if company:
-        # Serialize the single company
-        serializer = CompanySerializer(company)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    else:
-        return Response({"detail": "No matching company found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])
