@@ -200,18 +200,24 @@ def get_individual_profile(request, username):
 
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user_profile(request):
+    try:
+        individual = Individual.objects.get(user=request.user)
+        serializer = IndividualSerializer(individual)
+        return Response(serializer.data)
+    except Individual.DoesNotExist:
+        return Response({"error": "Profile not found"}, status=404)
 
 
+# class CurrentUserProfileView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-
-
-class CurrentUserProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        try:
-            individual = Individual.objects.get(user=request.user)
-            serializer = IndividualSerializer(individual)
-            return Response(serializer.data, status=200)
-        except Individual.DoesNotExist:
-            return Response({"error": "Profile not found"}, status=404)
+#     def get(self, request):
+#         try:
+#             individual = Individual.objects.get(user=request.user)
+#             serializer = IndividualSerializer(individual)
+#             return Response(serializer.data, status=200)
+#         except Individual.DoesNotExist:
+#             return Response({"error": "Profile not found"}, status=404)
